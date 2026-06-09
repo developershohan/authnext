@@ -4,8 +4,11 @@ import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { errorHelper } from "@/components/utils";
+import { signIn as nextAuthSignIn } from "next-auth/react";
+import { redirect } from "next/navigation";
 
 const RegisterPage = () => {
+
   const [formType, setFormType] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -32,10 +35,7 @@ const RegisterPage = () => {
     setSubmitMessage("");
     setSubmitError("");
 
-    if (!formType) {
-      setSubmitMessage("Login is not implemented yet.");
-      return;
-    }
+    if (formType) {
 
     try {
       const response = await fetch("/api/register", {
@@ -53,12 +53,29 @@ const RegisterPage = () => {
         return;
       }
 
-      setSubmitMessage(data?.message || "User registered successfully.");
-      formik.resetForm();
+      login(values);
     } catch (error) {
       console.error("Error submitting form:", error);
       setSubmitError("Something went wrong. Please try again.");
     }
+    }
+
+      login(values);
+  };
+
+  const login = async (values) => {
+
+      await nextAuthSignIn("credentials", {
+        redirect: false,
+        email: values.email,
+        password: values.password,
+      }).then(data=>{
+        if(data.ok){
+          redirect("/dashboard");
+        }
+        setSubmitError("Login failed. Please check your credentials and try again.");
+      });
+
   };
 
   const toggleFormType = () => {
@@ -121,7 +138,7 @@ const RegisterPage = () => {
         {submitMessage ? (
           <p className="mb-4 text-sm text-green-600">{submitMessage}</p>
         ) : null}
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" isLoading={formik.isSubmitting}>
           {formType ? "Register" : "Login"}
         </Button>
         <p className="text-center mt-4">

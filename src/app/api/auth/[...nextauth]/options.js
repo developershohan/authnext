@@ -1,5 +1,8 @@
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { connectToDatabase } from "@/lib/db";
+import User from "@/lib/models/user";
 
 
 export const options = {
@@ -23,21 +26,33 @@ export const options = {
         },
       },
       async authorize(credentials) {
-        const { email, password } = credentials;
+        const email = credentials?.email?.trim().toLowerCase();
+        const password = credentials?.password;
 
-        // Here you would typically fetch the user from your database
-        // and verify the password. For demonstration, we'll use a hardcoded user.
-        const user = {
-          id: 1,
-          name: "John Doe",
-          email: "dev.shohanur@gmail.com",
-          password: "password123",
-        };
-        if (user && user.email === email && user.password === password) {
-          return user;
+        if (!email || !password) {
+          return null;
         }
-        return null;
+
+        await connectToDatabase();
+        const user = await User.findOne({ email });
+
+        if (!user) {
+          return null;
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          return null;
+        }
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+        };
+      },
+      pages: {
+        signIn: "/register",
       },
     }),
   ],
-}
+};

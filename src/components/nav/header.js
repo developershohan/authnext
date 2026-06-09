@@ -4,27 +4,49 @@ import {
   Avatar,
   Button,
   Dropdown,
-  Link,
   Toolbar,
 } from "@heroui/react";
+import NextLink from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
 
-const menuItems = [
+const publicMenuItems = [
   { label: "Home", href: "/" },
-  { label: "Dashboard", href: "/dashboard" },
   { label: "Posts", href: "/posts" },
-  { label: "Register", href: "/register" },
   { label: "Contact", href: "/contact" },
 ];
 
-const profileMenuItems = [
-  { label: "Settings", href: "/settings" },
-  { label: "Login", href: "/login" },
-  { label: "Logout", href: "/logout" },
-];
-
 export default function Header() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isAuthenticated = status === "authenticated";
+  const isSessionLoading = status === "loading";
+  const avatarFallback = session?.user?.email?.slice(0, 2).toUpperCase() || "SH";
+  const menuItems = [
+    ...publicMenuItems,
+    ...(isSessionLoading
+      ? []
+      : isAuthenticated
+        ? [{ label: "Dashboard", href: "/dashboard" }]
+        : [{ label: "Register", href: "/register" }]),
+  ];
+  const profileMenuItems = isAuthenticated
+    ? [
+        { label: "Settings", href: "/settings" },
+        { label: "Dashboard", href: "/dashboard" },
+      ]
+    : [
+        { label: "Login", href: "/register" },
+        { label: "Register", href: "/register" },
+      ];
+
+  const handleLogout = async () => {
+    setIsMenuOpen(false);
+    await signOut({ redirect: false, callbackUrl: "/register" });
+    router.push("/register");
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-default-200 bg-background/85 backdrop-blur-md">
@@ -59,21 +81,30 @@ export default function Header() {
             </span>
           </Button>
 
-          <Link href="/" className="text-xl font-bold text-foreground">
+          <NextLink href="/" className="text-xl font-bold text-foreground">
             Shohan
-          </Link>
+          </NextLink>
         </div>
 
         <nav aria-label="Desktop navigation" className="hidden items-center gap-6 sm:flex">
           {menuItems.map((item) => (
-            <Link
+            <NextLink
               key={item.label}
               className="text-sm font-medium text-foreground/75 transition hover:text-foreground"
               href={item.href}
             >
               {item.label}
-            </Link>
+            </NextLink>
           ))}
+          {isAuthenticated ? (
+            <button
+              type="button"
+              className="text-sm font-medium text-foreground/75 transition hover:text-foreground"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          ) : null}
         </nav>
 
         <Dropdown>
@@ -86,18 +117,29 @@ export default function Header() {
                 alt="Profile"
                 src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=128&h=128&q=80"
               />
-              <Avatar.Fallback>SH</Avatar.Fallback>
+              <Avatar.Fallback>{avatarFallback}</Avatar.Fallback>
             </Avatar>
           </Dropdown.Trigger>
           <Dropdown.Popover placement="bottom end">
             <Dropdown.Menu className="min-w-40" aria-label="Profile actions">
               {profileMenuItems.map((item) => (
                 <Dropdown.Item key={item.label} id={item.label.toLowerCase()} textValue={item.label}>
-                  <Link className="w-full text-foreground" href={item.href}>
+                  <NextLink className="block w-full text-foreground" href={item.href}>
                     {item.label}
-                  </Link>
+                  </NextLink>
                 </Dropdown.Item>
               ))}
+              {isAuthenticated ? (
+                <Dropdown.Item id="logout" textValue="Logout">
+                  <button
+                    type="button"
+                    className="block w-full text-left text-foreground"
+                    onPress={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </Dropdown.Item>
+              ) : null}
             </Dropdown.Menu>
           </Dropdown.Popover>
         </Dropdown>
@@ -110,25 +152,24 @@ export default function Header() {
         >
           <div className="mx-auto flex max-w-7xl flex-col gap-1">
             {menuItems.map((item) => (
-              <Link
+              <NextLink
                 key={item.label}
                 className="rounded-lg px-3 py-2 text-base font-medium text-foreground/80 hover:bg-default-100 hover:text-foreground"
                 href={item.href}
-                onPress={() => setIsMenuOpen(false)}
+                onClick={() => setIsMenuOpen(false)}
               >
                 {item.label}
-              </Link>
+              </NextLink>
             ))}
-            {profileMenuItems.map((item) => (
-              <Link
-                key={item.label}
-                className="rounded-lg px-3 py-2 text-base font-medium text-foreground/80 hover:bg-default-100 hover:text-foreground"
-                href={item.href}
-                onPress={() => setIsMenuOpen(false)}
+            {isAuthenticated ? (
+              <button
+                type="button"
+                className="rounded-lg px-3 py-2 text-left text-base font-medium text-foreground/80 hover:bg-default-100 hover:text-foreground"
+                onClick={handleLogout}
               >
-                {item.label}
-              </Link>
-            ))}
+                Logout
+              </button>
+            ) : null}
           </div>
         </nav>
       ) : null}

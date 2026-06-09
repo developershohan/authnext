@@ -1,6 +1,7 @@
 import Header from "@components/nav/header";
 import "./globals.css";
-import {Roboto} from "next/font/google";
+import { Roboto } from "next/font/google";
+import AuthProvider from "@/providers/authProvider";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -16,9 +17,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
-      <body className={`min-h-screen bg-background text-foreground antialiased ${roboto.variable}`}>
-        <Header />
-        {children}
+      <body
+        className={`min-h-screen bg-background text-foreground antialiased ${roboto.variable}`}
+      >
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

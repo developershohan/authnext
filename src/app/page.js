@@ -1,6 +1,4 @@
-"use client";
-
-import { Button } from "@heroui/react";
+import NextLink from "next/link";
 
 export default function Home() {
   return (
@@ -11,12 +9,18 @@ export default function Home() {
         tree now.
       </p>
       <div className="flex gap-3">
-        <Button as="a" href="/register" color="primary">
+        <NextLink
+          href="/register"
+          className="inline-flex h-10 items-center justify-center rounded-medium bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-85"
+        >
           Open Register
-        </Button>
-        <Button as="a" href="/dashboard" variant="bordered">
+        </NextLink>
+        <NextLink
+          href="/dashboard"
+          className="inline-flex h-10 items-center justify-center rounded-medium border border-default-200 px-4 text-sm font-medium text-foreground transition hover:bg-default-100"
+        >
           Open Dashboard
-        </Button>
+        </NextLink>
       </div>
     </main>
   );
