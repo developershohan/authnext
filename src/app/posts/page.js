@@ -3,7 +3,7 @@ import {options} from "@/app/api/auth/[...nextauth]/options";
 
 const PostsPage = async () => {
   const session = await getServerSession(options);
-  console.log(session);
+
   return (
     <div>PostsPage</div>
   )
