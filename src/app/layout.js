@@ -2,6 +2,8 @@ import Header from "@components/nav/header";
 import "./globals.css";
 import { Roboto } from "next/font/google";
 import AuthProvider from "@/providers/authProvider";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -19,10 +21,12 @@ export default function RootLayout({ children }) {
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <body
         className={`min-h-screen bg-background text-foreground antialiased ${roboto.variable}`}
+        suppressHydrationWarning
       >
         <AuthProvider>
           <Header />
           {children}
+          <ToastContainer />
         </AuthProvider>
       </body>
     </html>

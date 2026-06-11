@@ -1,7 +1,10 @@
-'use server'
+"use server";
 
-import {connectToDatabase} from "@lib/db";
+import { connectToDatabase } from "@lib/db";
 import Venue from "@/lib/models/venue";
+import Event from "@/lib/models/events";
+import { notFound } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 const getErrorMessage = (error) => {
   return (
@@ -10,7 +13,6 @@ const getErrorMessage = (error) => {
     "Something went wrong. Please try again."
   );
 };
-
 
 export async function createVenue(prevState, formData) {
   await connectToDatabase();
@@ -27,13 +29,21 @@ export async function createVenue(prevState, formData) {
       errors.name = "Name must be at least 3 characters long";
     }
 
-    if (!address || typeof address !== "string" || address.trim().length === 0) {
+    if (
+      !address ||
+      typeof address !== "string" ||
+      address.trim().length === 0
+    ) {
       errors.address = "Address is required";
     } else if (address.trim().length < 3) {
       errors.address = "Address must be at least 3 characters long";
     }
 
-    if (!country || typeof country !== "string" || country.trim().length === 0) {
+    if (
+      !country ||
+      typeof country !== "string" ||
+      country.trim().length === 0
+    ) {
       errors.country = "Country is required";
     } else if (country.trim().length < 3) {
       errors.country = "Country must be at least 3 characters long";
@@ -68,6 +78,7 @@ export async function createVenue(prevState, formData) {
       city: city.trim(),
     });
     await newVenue.save();
+    revalidatePath("/dashboard/add_event");
 
     return {
       type: "success",
@@ -89,3 +100,39 @@ export async function createVenue(prevState, formData) {
     };
   }
 }
+
+export async function getEvents(skip, limit) {
+  try {
+    await connectToDatabase();
+    const events = await Event.find({})
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "venue", model: Venue })
+      .sort([["_id", "desc"]]);
+    return events;
+  } catch (error) {
+    return {
+      type: "error",
+      message: getErrorMessage(error),
+    };
+  }
+}
+
+export const getSingleEvent = async (id) => {
+  await connectToDatabase();
+  try {
+    const request = await Event.find({ slug: id })
+      .populate({ path: "venue", model: Venue })
+      .exec();
+
+    if (!request.length > 0) {
+      return notFound();
+    }
+    return request[0];
+  } catch (error) {
+    return {
+      type: "error",
+      message: getErrorMessage(error),
+    };
+  }
+};

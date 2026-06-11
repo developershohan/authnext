@@ -11,4 +11,5 @@ const eventSchema = new mongoose.Schema({
   description: String,
   slug: { type: String, required: "missing slug", unique: true, index: true },
 });
-export const Event = mongoose.models.Event || mongoose.model("Event", eventSchema);
+const Event = mongoose.models.Event || mongoose.model("Event", eventSchema);
+export default Event;

@@ -1,9 +1,21 @@
 import NextLink from "next/link";
+import {getEvents} from "@lib/actions/actions"
+import EventsMasonaryComponent from "@/components/events_masonary"
 
-export default function Home() {
+export default async function Home() {
+  const showEvents = await getEvents(0,6);
+
+  async function loadMoreEvents(skip,limit){
+    'use server'
+    const nextEvents = await getEvents(skip,limit);
+
+    return JSON.parse(JSON.stringify(nextEvents));
+  }
+  
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-4xl flex-col items-center justify-center gap-6 px-6 text-center">
       <h1 className="text-4xl font-bold">Hello world!</h1>
+       <EventsMasonaryComponent eventsData={JSON.parse(JSON.stringify(showEvents))} loadMore={loadMoreEvents} />
       <p className="max-w-xl text-foreground/70">
         The auth flow is wired up and the app is rendering with a stable client
         tree now.

@@ -1,3 +1,28 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 @import "react-country-state-city/dist/react-country-state-city.css";
+
+/* Masonry styles */
+.my-masonry-grid {
+  display: flex;
+  margin-left: -16px;
+  width: auto;
+}
+
+.my-masonry-grid_column {
+  padding-left: 16px;
+  background-clip: padding-box;
+}
+
+/* Masonry breakpoints */
+.my-masonry-grid .my-masonry-grid_column {
+  width: calc(100% / 3);
+}
+
+.my-masonry-grid .my-masonry-grid_column.small {
+  width: calc(100% / 2);
+}
+
+.my-masonry-grid .my-masonry-grid_column.xsmall {
+  width: 100%;
+}
